@@ -1,0 +1,85 @@
+name: BISE -> SQLite DB
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_roll:
+        description: "Starting 6-digit roll number"
+        required: true
+        type: string
+        default: "110000"
+      end_roll:
+        description: "Ending 6-digit roll number"
+        required: true
+        type: string
+        default: "120000"
+      class:
+        description: "Class (9, 10, 11, 12)"
+        required: true
+        type: choice
+        options:
+          - "9"
+          - "10"
+          - "11"
+          - "12"
+      year:
+        description: "Exam year (e.g. 2019)"
+        required: true
+        type: string
+        default: "2013"
+      timeout:
+        description: "Request timeout in seconds"
+        required: false
+        default: "30"
+        type: string
+      skip_existing:
+        description: "Skip roll numbers already present in the DB"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build_db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run scraper
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SKIP_FLAG=""
+          if [[ "${{ inputs.skip_existing }}" == "true" ]]; then
+            SKIP_FLAG="--skip-existing"
+          fi
+
+          python main.py \
+            --start-roll "${{ inputs.start_roll }}" \
+            --end-roll "${{ inputs.end_roll }}" \
+            --class "${{ inputs.class }}" \
+            --year "${{ inputs.year }}" \
+            --timeout "${{ inputs.timeout }}" \
+            ${SKIP_FLAG}
+
+      - name: Upload DB artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bise_db_${{ inputs.year }}_class_${{ inputs.class }}_${{ inputs.start_roll }}_${{ inputs.end_roll }}
+          path: |
+            *.db
+          if-no-files-found: error
+
