@@ -7,12 +7,12 @@ on:
         description: "Starting 6-digit roll number"
         required: true
         type: string
-        default: "110000"
+        default: "510000"
       end_roll:
         description: "Ending 6-digit roll number"
         required: true
         type: string
-        default: "120000"
+        default: "520000"
       class:
         description: "Class (9, 10, 11, 12)"
         required: true
@@ -26,7 +26,7 @@ on:
         description: "Exam year (e.g. 2019)"
         required: true
         type: string
-        default: "2013"
+        default: "2012"
       timeout:
         description: "Request timeout in seconds"
         required: false
